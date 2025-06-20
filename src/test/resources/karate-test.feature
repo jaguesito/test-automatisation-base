@@ -19,50 +19,63 @@ Feature: Test de API súper simple
     Then status 200
 
   Scenario: Crear personaje (POST)
-    # Crear personaje
     * def randomName = 'User_' + java.util.UUID.randomUUID().toString().substring(0, 8)
-    * def jsonData = { "name": '#(randomName)', "alterego": "Tony Stark", "description": "Genius billionaire", "powers": ["Armor", "Flight"] }
+    * def jsonData = read('classpath:data/marvel_characters_api/request_create_character.json')
+    * set jsonData.name = randomName
     And request jsonData
     When method POST
     Then status 201
 
   Scenario: Obtener personaje por ID (GET)
-    # Crear personaje
     * def randomName = 'User_' + java.util.UUID.randomUUID().toString().substring(0, 8)
-    * def jsonData = { "name": '#(randomName)', "alterego": "Tony Stark", "description": "Genius billionaire", "powers": ["Armor", "Flight"] }
+    * def jsonData = read('classpath:data/marvel_characters_api/request_create_character.json')
+    * set jsonData.name = randomName
     And request jsonData
     When method POST
     Then status 201
     * def personajeId = response.id
-    # Obtener personaje creado
     * path '/' + personajeId
+    # Obtener personaje existente
     When method GET
     Then status 200    
 
   Scenario: Actualizar personaje (PUT)
-    # Crear personaje
     * def randomName = 'User_' + java.util.UUID.randomUUID().toString().substring(0, 8)
-    * def jsonData = { "name": '#(randomName)', "alterego": "Tony Stark", "description": "Genius billionaire", "powers": ["Armor", "Flight"] }
+    * def jsonData = read('classpath:data/marvel_characters_api/request_create_character.json')
+    * set jsonData.name = randomName
     And request jsonData
     When method POST
     Then status 201
     * def personajeId = response.id
-    # Actualizar personaje creado
     * path '/' + personajeId
-    * def jsonData = { "name": '#(randomName)', "alterego": "Tony Stark", "description": "Updated description", "powers": ["Armor", "Flight"] }
+    * def jsonData = read('classpath:data/marvel_characters_api/request_update_character.json')
+    * set jsonData.name = randomName
     And request jsonData
+    # Actualizar personaje existente
     When method PUT
     Then status 200
 
   Scenario: Eliminar personaje (DELETE)
-    # Crear personaje
     * def randomName = 'User_' + java.util.UUID.randomUUID().toString().substring(0, 8)
-    * def jsonData = { "name": '#(randomName)', "alterego": "Tony Stark", "description": "Genius billionaire", "powers": ["Armor", "Flight"] }
+    * def jsonData = read('classpath:data/marvel_characters_api/request_create_character.json')
+    * set jsonData.name = randomName
     And request jsonData
     When method POST
     Then status 201
     * def personajeId = response.id
-    # Eliminar personaje creado
     * path '/' + personajeId
+    # Eliminar personaje existente
     When method DELETE
     Then status 204
+
+  Scenario: Crear personaje ya existente (POST)
+    # Obtener todos los personajes
+    When method GET
+    Then status 200
+    * def personajes = response
+    * def primerPersonaje = personajes[0]
+    * def jsonData = { "name": '#(primerPersonaje.name)', "alterego": '#(primerPersonaje.alterego)', "description": '#(primerPersonaje.description)', "powers": '#(primerPersonaje.powers)' }
+    And request jsonData
+    # Crear personaje existente
+    When method POST
+    Then status 400
